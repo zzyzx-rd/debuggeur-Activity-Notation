@@ -33,7 +33,6 @@ class URLConst:
 
 
 class DefaultData:
-
     ID = {'_password': "Serpico2019", '_remember_me': "on", '_target_path': "home"}
     DATA_INIT = {"fi": 1, "up": 1, "m": 1, "an": "generatedActivity", "im": 0}
     DATA_ADD_PARTICIPANT = {"precomment": ""}
@@ -72,6 +71,8 @@ class DefaultData:
         self.dataValidateActivity["activity_element_form[name]"] = activityName
         self.indexCriteria = [0]
         self.indexParticipant = [0]
+        self.nbUserGraded = [0]
+        self.nbTeamGraded = [0]
 
     def getDataAddCriteria(self, criteriaName="204", lowerbound="0", upperbound="5", weight="100", stageIndex=0):
         dataAddCriteria = DefaultData.DATA_ADD_CRITERIA
@@ -113,8 +114,14 @@ class DefaultData:
         if leader:
             dataAddParticipant["leader"] = True
         # Add data in validation data
-        keyBase = "activity_element_form[activeModifiableStages][" + str(stage) + "][independantUniqueIntParticipations][" + str(self.indexParticipant[stage]) + "]["
-        keyDirectUser = keyBase + "directUser]"
+        if userType == "user":
+            keyBase = "activity_element_form[activeModifiableStages][" + str(
+                stage) + "][independantUniqueIntParticipations][" + str(self.indexParticipant[stage]) + "]["
+            keyDirectUser = keyBase + "directUser]"
+        elif userType == "team":
+            keyBase = "activity_element_form[activeModifiableStages][" + str(
+                stage) + "][independantUniqueTeamParticipations][" + str(self.indexParticipant[stage]) + "]["
+            keyDirectUser = keyBase + "team]"
         self.dataValidateActivity[keyDirectUser] = participantId
         keyType = keyBase + "type]"
         self.dataValidateActivity[keyType] = type
@@ -124,76 +131,30 @@ class DefaultData:
             keyLeader = keyBase + "leader]"
             self.dataValidateActivity[keyLeader] = 1
         self.indexParticipant[stage] += 1
+        if type != 0 and userType == "user":
+            self.nbUserGraded[stage] += 1
+        elif type != 0 and userType == "team":
+            self.nbTeamGraded[stage] += 1
         return dataAddParticipant
 
-    DATA_INIT_TEAM = {"fi": 1, "up": 1, "m": 1, "an": "generatedActivityTeam", "im": 0}
-    DATA_ADD_MEMBER = {
-        "pElmtType": "user", "pElmtId": 303, "type": 1, "precomment": "", "leader": True}
-    DATA_ADD_MEMBER_2 = {"pElmtType": "user", "pElmtId": 298, "type": 1, "precomment": ""}
-
-    DATA_ADD_TEAM_23 = {"pElmtType": "team", "pElmtId": 8, "type": 1, "precomment": "", "leader": True}
-    DATA_ADD_TEAM_DREAM_TEAM = {"pElmtType": "team", "pElmtId": 9, "type": 1, "precomment": ""}
-
-    DATA_SAVE_ACTIVITY = {
-        "clicked-btn": "update",
-        "activity_element_form[name]": "generatedActivity",
-        "activity_element_form[activeModifiableStages][0][activeWeight]": 100,
-        "activity_element_form[activeModifiableStages][0][name]": "generatedActivity",
-        "activity_element_form[activeModifiableStages][0][startdate]": "20/07/2020",
-        "activity_element_form[activeModifiableStages][0][gstartdate]": "20/07/2020",
-        "activity_element_form[activeModifiableStages][0][enddate]": "20/07/2020",
-        "activity_element_form[activeModifiableStages][0][genddate]": "20/07/2020",
-        "activity_element_form[activeModifiableStages][0][mode]": 1,
-        "activity_element_form[activeModifiableStages][0][visibility]": 3,
-        "activity_element_form[activeModifiableStages][0][criteria][0][weight]": 100,
-        "activity_element_form[activeModifiableStages][0][criteria][0][cName]": 204,
-        "activity_element_form[activeModifiableStages][0][criteria][0][type]": 1,
-        "activity_element_form[activeModifiableStages][0][criteria][0][forceCommentSign]": "smaller",
-        "activity_element_form[activeModifiableStages][0][criteria][0][forceCommentValue]": "",
-        "activity_element_form[activeModifiableStages][0][criteria][0][lowerbound]": 0,
-        "activity_element_form[activeModifiableStages][0][criteria][0][upperbound]": 5,
-        "activity_element_form[activeModifiableStages][0][criteria][0][step]": 0.5,
-        "activity_element_form[activeModifiableStages][0][criteria][0][targetValue]": "",
-        "activity_element_form[activeModifiableStages][0][criteria][0][comment]": "",
-        "activity_element_form[activeModifiableStages][0][independantUniqueIntParticipations][0][directUser]": 303,
-        "activity_element_form[activeModifiableStages][0][independantUniqueIntParticipations][0][leader]": 1,
-        "activity_element_form[activeModifiableStages][0][independantUniqueIntParticipations][0][type]": 1,
-        "activity_element_form[activeModifiableStages][0][independantUniqueIntParticipations][0][precomment]": "",
-        "activity_element_form[activeModifiableStages][0][independantUniqueIntParticipations][1][directUser]": 298,
-        "activity_element_form[activeModifiableStages][0][independantUniqueIntParticipations][1][type]": 1,
-        "activity_element_form[activeModifiableStages][0][independantUniqueIntParticipations][1][precomment]": ""
-    }
-
-    DATA_SAVE_TEAM_ACTIVITY = {
-        "activity_element_form[name]": "generatedActivityTeam",
-        "activity_element_form[activeModifiableStages][0][activeWeight]	": 100,
-        "activity_element_form[activeModifiableStages][0][name]	": "generatedActivityTeam",
-        "activity_element_form[activeModifiableStages][0][startdate]": "20/07/2020",
-        "activity_element_form[activeModifiableStages][0][gstartdate]": "20/07/2020",
-        "activity_element_form[activeModifiableStages][0][enddate]": "20/07/2020",
-        "activity_element_form[activeModifiableStages][0][genddate]": "20/07/2020",
-        "activity_element_form[activeModifiableStages][0][mode]	": 1,
-        "activity_element_form[activeModifiableStages][0][visibility": 3,
-        "activity_element_form[activeModifiableStages][0][criteria][0][weight": 100,
-        "activity_element_form[activeModifiableStages][0][criteria][0][cName]": 204,
-        "activity_element_form[activeModifiableStages][0][criteria][0][type]": 1,
-        "activity_element_form[activeModifiableStages][0][criteria][0][forceCommentSign]": "smaller",
-        "activity_element_form[activeModifiableStages][0][criteria][0][forceCommentValue]": "",
-        "activity_element_form[activeModifiableStages][0][criteria][0][lowerbound]": "0",
-        "activity_element_form[activeModifiableStages][0][criteria][0][upperbound]": "5",
-        "activity_element_form[activeModifiableStages][0][criteria][0][step]": 0.5,
-        "activity_element_form[activeModifiableStages][0][criteria][0][targetValue]": "",
-        "activity_element_form[activeModifiableStages][0][criteria][0][comment]": "",
-        "activity_element_form[activeModifiableStages][0][independantUniqueTeamParticipations][0][team]": 8,
-        "activity_element_form[activeModifiableStages][0][independantUniqueTeamParticipations][0][leader]": 1,
-        "activity_element_form[activeModifiableStages][0][independantUniqueTeamParticipations][0][type]": 1,
-        "activity_element_form[activeModifiableStages][0][independantUniqueTeamParticipations][0][precomment]": "",
-        "activity_element_form[activeModifiableStages][0][independantUniqueTeamParticipations][1][team]": 9,
-        "activity_element_form[activeModifiableStages][0][independantUniqueTeamParticipations][1][type]": 1,
-        "activity_element_form[activeModifiableStages][0][independantUniqueTeamParticipations][1][precomment]": "",
-        "clicked-btn": "update",
-    }
-
+    def getDataNotation(self, stage=0):
+        data = {"stage_unique_participations[finalize]": ""}
+        leftBaseUserKey = "stage_unique_participations[userGradableParticipations]["
+        middleBaseKey = "][receivedGrades]["
+        for criteria in range(self.indexCriteria[stage]):
+            for usergraded in range(self.nbUserGraded[stage]):
+                baseKey = leftBaseUserKey + str(usergraded) + middleBaseKey + str(criteria)
+                key = baseKey + "][value]"
+                data[key] = 3.5
+                key = baseKey + "][comment]"
+                data[key] = ""
+            for teamgraded in range(self.nbTeamGraded[stage]):
+                baseKey = leftBaseUserKey + str(teamgraded) + middleBaseKey  + str(criteria)
+                key = baseKey + "][value]"
+                data[key] = 3.5
+                key = baseKey + "][comment]"
+                data[key] = ""
+        return data
 
     @staticmethod
     def getID(mail):

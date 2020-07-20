@@ -85,7 +85,7 @@ class SessionSerpico:
         print(Colors.FAIL + "token_activity : " + Colors.ENDC + self.activity_token)
         self.writeContent(x.text)
 
-    def addParticipant(self, data=const.DefaultData.DATA_ADD_MEMBER, memberID=303, leader=True):
+    def addParticipant(self, data):
         print(Colors.OKBLUE + "ajout membres" + Colors.ENDC)
         x = requests.post(const.URLConst.URL_AJOUT_USER(self.stageNumber), data=data,
                           headers=self.headers,
@@ -99,7 +99,7 @@ class SessionSerpico:
                           data=data,
                           cookies=self.cookies, headers=self.headers)
 
-    def ValidateActivity(self, data=const.DefaultData.DATA_SAVE_ACTIVITY):
+    def ValidateActivity(self, data):
         print(Colors.OKBLUE + "finalisation activity" + Colors.ENDC)
         dataSaveActivity = data
         dataSaveActivity["activity_element_form[_token]"] = self.activity_token
@@ -108,8 +108,7 @@ class SessionSerpico:
         x = requests.post(const.URLConst.URL_SAVE_ACTIVITY + str(self.activityNumber), data=dataSaveActivity,
                           cookies=self.cookies, headers=self.headers)
 
-
-    def GradeActivity(self, data=const.DefaultData.DATA_POST_GRADE):
+    def GradeActivity(self, data):
         print(Colors.OKBLUE + "Get du token de notation" + Colors.ENDC)
         x = requests.get(url=const.URLConst.URL_GET_GRADE_TOKEN(self.stageNumber), headers=self.headers,
                          cookies=self.cookies)
@@ -127,6 +126,7 @@ class SessionSerpico:
         print(Colors.OKBLUE + "Envoie de la note" + Colors.ENDC)
         dataPostGrade = data
         dataPostGrade["stage_unique_participations[_token]"] = grade_token
+        print(dataPostGrade)
         x = requests.post(const.URLConst.URL_GET_GRADE_TOKEN(self.stageNumber), headers=self.headers,
                           cookies=self.cookies, data=dataPostGrade)
 
@@ -137,6 +137,7 @@ class SessionSerpico:
 
 
 def ScriptTest1():
+    print(Colors.BOLD + " Appel du script de base" + Colors.ENDC)
     data = const.DefaultData(activityName="generatedActivity")
     rmurray = SessionSerpico("rmurray@yopmail.com")
     rmurray.createActivity(data.dataCreationActivity)
@@ -145,11 +146,12 @@ def ScriptTest1():
     rmurray.addParticipant(data.getDataAddParticipant(298, leader=False))
     rmurray.ValidateActivity(data.dataValidateActivity)
     # Notation
-    # mserre = SessionSerpico("mserre@yopmail.com", rmurray.stageNumber)
-    # mserre.GradeActivity()
+    mserre = SessionSerpico("mserre@yopmail.com", rmurray.stageNumber)
+    mserre.GradeActivity(data.getDataNotation())
 
 
 def ScriptTest2():
+    print(Colors.BOLD + " Appel du script a deux teams " + Colors.ENDC)
     data = const.DefaultData(activityName="generatedActivityTeam")
     rmurray = SessionSerpico("rmurray@yopmail.com")
     rmurray.createActivity(data=data.dataCreationActivity)
