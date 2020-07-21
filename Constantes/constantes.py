@@ -1,7 +1,12 @@
 import sys
 
 sys.path.append("..")
-
+RMURRAY = "rmurray@yopmail.com"
+JLEBLANC = "jleblanc@yopmail.com"
+ERROR_ACTIVITY_VIDE = "Assurez-vous qu&#039;au moins une phase possède au minimum un participant qui donne ses " \
+                      "retours et un participant qui en reçoit, sur base d&#039;un sondage ou d&#039;un ou plusieurs " \
+                      "critères d&#039;évaluation"
+ERROR_NO_OWNER = "Assurez-vous qu&#039;au moins une phase configurée ait un participant owner, en droit de la configurer"
 
 class URLConst:
     URL_LOCAL_HOST = "http://localhost:8888/fr/"
@@ -31,11 +36,14 @@ class URLConst:
     def URL_GET_GRADE_TOKEN(stageNumber):
         return URLConst.URL_GET_GRADE_TOKEN_L + str(stageNumber) + URLConst.URL_GET_GRADE_TOKEN_R
 
+    @staticmethod
+    def URL_DELETE(activityNumber):
+        return URLConst.DELETE_URL + str(activityNumber)
+
 
 class DefaultData:
     ID = {'_password': "Serpico2019", '_remember_me': "on", '_target_path': "home"}
     DATA_INIT = {"fi": 1, "up": 1, "m": 1, "an": "generatedActivity", "im": 0}
-    DATA_ADD_PARTICIPANT = {"precomment": ""}
     DATA_ADD_CRITERIA = {"criterion[type]": "1",
                          "criterion[lowerbound]": "0",
                          "criterion[upperbound]": "5",
@@ -65,10 +73,11 @@ class DefaultData:
     def __init__(self, mail="rmurray@yopmail.com", activityName="generatedActivity"):
         self.connection_data = DefaultData.ID
         self.connection_data["_username"] = mail
-        self.dataCreationActivity = DefaultData.DATA_INIT
+        self.dataCreationActivity = DefaultData.DATA_INIT.copy()
         self.dataCreationActivity["an"] = activityName
-        self.dataValidateActivity = DefaultData.DATA_VALIDATE_ACTIVITY
+        self.dataValidateActivity = DefaultData.DATA_VALIDATE_ACTIVITY.copy()
         self.dataValidateActivity["activity_element_form[name]"] = activityName
+        self.dataValidateActivity["activity_element_form[activeModifiableStages][0][name]"] = activityName
         self.indexCriteria = [0]
         self.indexParticipant = [0]
         self.nbUserGraded = [0]
@@ -107,10 +116,7 @@ class DefaultData:
         return dataAddCriteria
 
     def getDataAddParticipant(self, participantId=303, type=1, leader=True, userType="user", stage=0):
-        dataAddParticipant = DefaultData.DATA_ADD_PARTICIPANT
-        dataAddParticipant["pElmtType"] = userType
-        dataAddParticipant["pElmtId"] = participantId
-        dataAddParticipant["type"] = type
+        dataAddParticipant = {"precomment": "", "pElmtType": userType, "pElmtId": participantId, "type": type}
         if leader:
             dataAddParticipant["leader"] = True
         # Add data in validation data
@@ -149,7 +155,7 @@ class DefaultData:
                 key = baseKey + "][comment]"
                 data[key] = ""
             for teamgraded in range(self.nbTeamGraded[stage]):
-                baseKey = leftBaseUserKey + str(teamgraded) + middleBaseKey  + str(criteria)
+                baseKey = leftBaseUserKey + str(teamgraded) + middleBaseKey + str(criteria)
                 key = baseKey + "][value]"
                 data[key] = 3.5
                 key = baseKey + "][comment]"
