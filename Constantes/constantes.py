@@ -2,11 +2,18 @@ import sys
 
 sys.path.append("..")
 RMURRAY = "rmurray@yopmail.com"
+MSERRE = "mserre@yopmail.com"
+SFEDER = "s.federspiel@yopmail.com"
 JLEBLANC = "jleblanc@yopmail.com"
 ERROR_ACTIVITY_VIDE = "Assurez-vous qu&#039;au moins une phase possède au minimum un participant qui donne ses " \
                       "retours et un participant qui en reçoit, sur base d&#039;un sondage ou d&#039;un ou plusieurs " \
                       "critères d&#039;évaluation"
-ERROR_NO_OWNER = "Assurez-vous qu&#039;au moins une phase configurée ait un participant owner, en droit de la configurer"
+ERROR_NO_OWNER = "Assurez-vous qu&#039;au moins une phase configurée ait un participant owner, en droit de la " \
+                 "configurer"
+CHAMPS_GS_DATE = "activity_element_form[activeModifiableStages][0][gstartdate]"
+CHAMPS_GE_DATE = "activity_element_form[activeModifiableStages][0][genddate]"
+DATE_FUTUR = "20/07/2024"
+
 
 class URLConst:
     URL_LOCAL_HOST = "http://localhost:8888/fr/"
@@ -17,15 +24,15 @@ class URLConst:
     URL_AJOUT_CRITERION_M = "/stage/"
     URL_AJOUT_CRITERION_R = "/criterion/validate/0"
     URL_AJOUT_USER_L = URL_LOCAL_HOST + "activity/stage/"
-    URL_AJOUT_USER_R = "/participant/validate/0"
+    URL_AJOUT_USER_R = "/participant/validate/"
     URL_SAVE_ACTIVITY = URL_LOCAL_HOST + "activity/"
     URL_GET_GRADE_TOKEN_L = URL_LOCAL_HOST + "activity/"
     URL_GET_GRADE_TOKEN_R = "/grade"
     DELETE_URL = "http://localhost:8888/ajax/activity/delete/"
 
     @staticmethod
-    def URL_AJOUT_USER(stageNumber):
-        return URLConst.URL_AJOUT_USER_L + str(stageNumber) + URLConst.URL_AJOUT_USER_R
+    def URL_AJOUT_USER(stageNumber, userId=0):
+        return URLConst.URL_AJOUT_USER_L + str(stageNumber) + URLConst.URL_AJOUT_USER_R + str(userId)
 
     @staticmethod
     def URL_AJOUT_CRITERION(activityNumber, stageNumber):
@@ -115,18 +122,23 @@ class DefaultData:
         # return the data
         return dataAddCriteria
 
-    def getDataAddParticipant(self, participantId=303, type=1, leader=True, userType="user", stage=0):
+    """
+    update : 0 if creation, else : index of updated one
+    """
+
+    def getDataAddParticipant(self, participantId=303, type=1, leader=True, userType="user", stage=0, update=0):
         dataAddParticipant = {"precomment": "", "pElmtType": userType, "pElmtId": participantId, "type": type}
         if leader:
             dataAddParticipant["leader"] = True
+        indexParticipant = self.indexParticipant[stage] * (update == 0) + update
         # Add data in validation data
         if userType == "user":
             keyBase = "activity_element_form[activeModifiableStages][" + str(
-                stage) + "][independantUniqueIntParticipations][" + str(self.indexParticipant[stage]) + "]["
+                stage) + "][independantUniqueIntParticipations][" + str(indexParticipant) + "]["
             keyDirectUser = keyBase + "directUser]"
         elif userType == "team":
             keyBase = "activity_element_form[activeModifiableStages][" + str(
-                stage) + "][independantUniqueTeamParticipations][" + str(self.indexParticipant[stage]) + "]["
+                stage) + "][independantUniqueTeamParticipations][" + str(indexParticipant) + "]["
             keyDirectUser = keyBase + "team]"
         self.dataValidateActivity[keyDirectUser] = participantId
         keyType = keyBase + "type]"
@@ -137,10 +149,11 @@ class DefaultData:
             keyLeader = keyBase + "leader]"
             self.dataValidateActivity[keyLeader] = 1
         self.indexParticipant[stage] += 1
-        if type != 0 and userType == "user":
-            self.nbUserGraded[stage] += 1
-        elif type != 0 and userType == "team":
-            self.nbTeamGraded[stage] += 1
+        if not update:
+            if type != 0 and userType == "user":
+                self.nbUserGraded[stage] += 1
+            elif type != 0 and userType == "team":
+                self.nbTeamGraded[stage] += 1
         return dataAddParticipant
 
     def getDataNotation(self, stage=0):

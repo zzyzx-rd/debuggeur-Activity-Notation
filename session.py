@@ -1,6 +1,6 @@
 import json
 import sys
-
+import time
 sys.path.append("..")
 import requests
 from Constantes import constantes as const
@@ -85,15 +85,16 @@ class SessionSerpico:
             print(Colors.BOLD + "indice_token_activity : " + Colors.ENDC + str(indice_token_activity))
             print(Colors.BOLD + "indice_token_activity_fin : " + Colors.ENDC + str(indice_token_activity_fin))
             print(Colors.FAIL + "token_activity : " + Colors.ENDC + self.activity_token)
-        self.writeContent(x.text)
 
-    def addParticipant(self, data, affichage=True):
+    def addParticipant(self, data, affichage=True, userId=0):
         if affichage:
             print(Colors.OKBLUE + "ajout membres" + Colors.ENDC)
-        x = requests.post(const.URLConst.URL_AJOUT_USER(self.stageNumber), data=data,
+        with open("rd4.html", "w") as f:
+            f.write(json.dumps(data, indent=4))
+        x = requests.post(const.URLConst.URL_AJOUT_USER(stageNumber=self.stageNumber, userId=userId),
+                          data=data,
                           headers=self.headers,
                           cookies=self.cookies)
-        self.writeContent(x.text)
         return x
 
     def addCriterion(self, data, affichage=True):
@@ -120,6 +121,7 @@ class SessionSerpico:
             print(Colors.OKBLUE + "Get du token de notation" + Colors.ENDC)
         x = requests.get(url=const.URLConst.URL_GET_GRADE_TOKEN(self.stageNumber), headers=self.headers,
                          cookies=self.cookies)
+        print(x.url)
         with open('rd10.html', 'w') as f:
             f.write(x.text)
         indice_token_grade = x.text.find('"stage_unique_participations[_token]" value="') + 45
@@ -130,12 +132,15 @@ class SessionSerpico:
             print(Colors.BOLD + "indice_token_grade_fin : " + Colors.ENDC + str(indice_token_grade_fin))
             print(Colors.FAIL + "token_grade : " + Colors.ENDC + grade_token)
 
-        # Send de la note
+            # Send de la note
             print(Colors.OKBLUE + "Envoie de la note" + Colors.ENDC)
         dataPostGrade = data
         dataPostGrade["stage_unique_participations[_token]"] = grade_token
+        with open("dataNotation", "w") as f:
+            f.write(json.dumps(dataPostGrade, indent=4))
         x = requests.post(const.URLConst.URL_GET_GRADE_TOKEN(self.stageNumber), headers=self.headers,
                           cookies=self.cookies, data=dataPostGrade)
+        return x
 
     def deleteActivity(self, affichage=True):
         if affichage:
@@ -161,20 +166,23 @@ def ScriptTest1():
     with open("expected.html", "w") as f:
         f.write(request.text)
     # Notation
-    mserre = SessionSerpico("mserre@yopmail.com", rmurray.stageNumber)
-    mserre.GradeActivity(data.getDataNotation())
+    # mserre = SessionSerpico(const.MSERRE, stageNumber=rmurray.stageNumber)
+    # request = mserre.GradeActivity(data.getDataNotation())
+    # with open("rd1.html", "w") as f:
+    #     f.write(request.text)
 
 
 def ScriptTest2():
     print(Colors.BOLD + " Appel du script a deux teams " + Colors.ENDC)
     data = const.DefaultData(activityName="generatedActivityTeam")
-    rmurray = SessionSerpico("rmurray@yopmail.com", af)
+    rmurray = SessionSerpico("rmurray@yopmail.com")
     rmurray.createActivity(data=data.dataCreationActivity)
     rmurray.addCriterion(data.getDataAddCriteria())
     rmurray.addParticipant(data.getDataAddParticipant(8, leader=True, userType="team"))
     rmurray.addParticipant(data.getDataAddParticipant(9, leader=False, userType="team"))
     rmurray.ValidateActivity(data.dataValidateActivity)
     # Notations
+    rmurray.GradeActivity(data.getDataNotation())
 
 
 def ScriptTestControls():
@@ -213,13 +221,67 @@ def ScriptTestControls():
     affichageScriptControl(request, const.ERROR_NO_OWNER)
     rmurray.deleteActivity()
 
+
+def testDates():
+    print(Colors.BOLD + " Appel du script de check des contraintes d'activity avec les dates" + Colors.ENDC)
+    # tests sur les dates (il faut une activity complète)
+    data = const.DefaultData(activityName="generatedActivityWithDatePrb2")
+    rmurray = SessionSerpico("rmurray@yopmail.com")
+    rmurray.createActivity(data.dataCreationActivity)
+    rmurray.addCriterion(data.getDataAddCriteria())
+    rmurray.addParticipant(data.getDataAddParticipant())
+    rmurray.addParticipant(data.getDataAddParticipant(298, leader=False))
+    rmurray.ValidateActivity(data=data.dataValidateActivity)
+    sfeder = SessionSerpico(const.SFEDER, stageNumber=rmurray.stageNumber)
+    request = sfeder.GradeActivity(data=data.getDataNotation())
+    with open("rd1.html", "w") as f:
+        f.write(request.text)
+    data.dataValidateActivity[const.CHAMPS_GS_DATE] = const.DATE_FUTUR
+    data.dataValidateActivity[const.CHAMPS_GE_DATE] = const.DATE_FUTUR
+    rmurray.ValidateActivity(data=data.dataValidateActivity)
+    # # tentative de notation (marche, pas supposé)
+    # mserre = SessionSerpico(const.MSERRE, stageNumber=rmurray.stageNumber)
+    # request = mserre.GradeActivity(data.getDataNotation())
+    # with open("rd2.html", "w") as f:
+    #     f.write(request.text)
+
+
+def testModifActivity():
+    print(Colors.BOLD + " Appel du script de check des contraintes d'activity en cas d'uptdate" + Colors.ENDC)
+    data = const.DefaultData(activityName="generatedActivityToUpdate")
+    rmurray = SessionSerpico("rmurray@yopmail.com")
+    rmurray.createActivity(data.dataCreationActivity)
+    rmurray.addCriterion(data.getDataAddCriteria())
+    rmurray.addParticipant(data.getDataAddParticipant())
+    request = rmurray.addParticipant(data.getDataAddParticipant(298, leader=False, type=0))
+    idFeder = request.json()["eid"]
+    print(idFeder)
+    rmurray.ValidateActivity(data=data.dataValidateActivity)
+    # s note
+    sfeder = SessionSerpico(const.SFEDER, stageNumber=rmurray.stageNumber)
+    request = sfeder.GradeActivity(data=data.getDataNotation())
+    with open("rd1.html", "w") as f:
+        f.write(request.text)
+    # s passe en tiers
+    request = rmurray.addParticipant(data.getDataAddParticipant(298, leader=False, type=1, update=1), userId=idFeder)
+    with open("rd2.html", "w") as f:
+        f.write(request.text)
+    request = rmurray.ValidateActivity(data=data.dataValidateActivity)
+    with open("rd3.html", "w") as f:
+        f.write(request.text)
+
 def affichageScriptControl(request, expectedContent):
     if request.text.__contains__(expectedContent):
         print(Colors.OKGREEN + "OK" + Colors.ENDC)
     else:
         with open("erreur1.html", "w") as f:
             f.write(request.text)
-        print(Colors.BOLD + "Expected message : '" + Colors.ENDC + expectedContent + Colors.BOLD + "'" + Colors.ENDC )
+        print(Colors.BOLD + "Expected message : '" + Colors.ENDC + expectedContent + Colors.BOLD + "'" + Colors.ENDC)
         print(Colors.FAIL + "ERROR NOT SPOTTED" + Colors.ENDC)
+
+
 # ScriptTest1()
-ScriptTestControls()
+# ScriptTestControls()
+# testDates()
+testModifActivity()
+# ScriptTest2()
