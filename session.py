@@ -69,7 +69,7 @@ class SessionSerpico:
             print(Colors.OKBLUE + "get data activity" + Colors.ENDC)
         self.activityNumber = x.text[-6:-2]
         if log:
-            print(Colors.OKBLUE + "get data activity" + Colors.ENDC)
+            print(Colors.BOLD + "activity number : " + Colors.ENDC + str(self.activityNumber))
         if self.activityNumber == " one":
             print(Colors.FAIL + 'activity already exist : ' + Colors.ENDC + self.activityNumber)
         cookieAccessData = self.cookies

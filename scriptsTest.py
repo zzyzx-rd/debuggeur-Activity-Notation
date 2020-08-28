@@ -15,7 +15,7 @@ def ScriptTest1():
     works
     """
     print(Colors.BOLD + " Appel du script de base" + Colors.ENDC)
-    data = const.DefaultData(activityName="generatedActivityb.9")
+    data = const.DefaultData(activityName="generatedActivityb.13")
     rmurray = SessionSerpico("rmurray@yopmail.com")
     rmurray.createActivity(data.dataCreationActivity)
     dataC = data.getDataAddCriteria()
@@ -44,7 +44,7 @@ def ScriptTest2():
     should work
     """
     print(Colors.BOLD + " Appel du script a deux teams " + Colors.ENDC)
-    data = const.DefaultData(activityName="generatedActivityTeam2.2")
+    data = const.DefaultData(activityName="generatedActivityTeam2.36")
     rmurray = SessionSerpico("rmurray@yopmail.com")
     rmurray.createActivity(data=data.dataCreationActivity)
     rmurray.addCriterion(data.getDataAddCriteria())
@@ -60,8 +60,8 @@ def ScriptTest2():
     mserre.GradeActivity(data.getDataNotation())
     sfeder = SessionSerpico(const.SFEDER, rmurray.stageNumber)
     sfeder.GradeActivity(data.getDataNotation())
-    jleblanc = SessionSerpico(const.JLEBLANC, rmurray.stageNumber)
-    jleblanc.GradeActivity(data.getDataNotation())
+    # jleblanc = SessionSerpico(const.JLEBLANC, rmurray.stageNumber)
+    # jleblanc.GradeActivity(data.getDataNotation())
 
 
 def ScriptTestControls():
@@ -281,10 +281,10 @@ def affichageScriptControl(request, expectedContent):
 
 
 # ScriptTest1()
-# ScriptTest2()
+ScriptTest2()
 # ScriptTestControls()
 # testDates()
 # testModifActivity()
 # scriptTestNotation2()
 # scriptTestNotationPhaseAndUser()
-script3Criteria()
+# script3Criteria()
